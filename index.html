@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Class A Fix — Growth War-Gaming</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Roboto font -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React 18 UMD (production) -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel (so JSX works in this single file) -->
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+
+  <!-- PropTypes (Recharts expects this global) -->
+  <script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"></script>
+
+  <!-- Recharts UMD -->
+  <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js"></script>
+
+  <style>
+    :root{
+      --c-bg:#F9FBFC; --c-primary:#76CAE3; --c-navy:#1E3A8A; --c-lav:#D9E7F1;
+      --c-mint:#42B77E; --c-amber:#FFB84D; --c-coral:#E84855; --c-text:#0f172a;
+      --radius:14px; --shadow:0 2px 6px rgba(0,0,0,.05); --shadow-hover:0 6px 18px rgba(0,0,0,.08);
+      --gutter:24px; --transition:150ms cubic-bezier(.2,.7,.2,1);
+    }
+    html,body{height:100%;}
+    body{background:var(--c-bg); color:var(--c-text); font-family:"Roboto",system-ui,-apple-system,Segoe UI,Arial,sans-serif;}
+    .ui-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);transition:transform var(--transition),box-shadow var(--transition),background var(--transition);}
+    .ui-card:hover{box-shadow:var(--shadow-hover);}
+    .ui-title{font-weight:700;font-size:22px;color:var(--c-navy);} .ui-sub{font-weight:500;font-size:16px;color:#475569;} .ui-body{font-weight:400;font-size:14px;}
+    .btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:.5rem;border:none;border-radius:12px;padding:.625rem 1rem;font-weight:600;transition:transform var(--transition);}
+    .btn:hover{transform:scale(1.02);} .btn:active{transform:scale(0.99);} .btn--primary{background:var(--c-primary);color:#083344;} .btn--navy{background:var(--c-navy);color:#fff;}
+    .ripple{position:absolute;border-radius:50%;transform:scale(0);animation:ripple 500ms ease-out;background:rgba(255,255,255,.35);pointer-events:none;} @keyframes ripple{to{transform:scale(4);opacity:0}}
+    .ui-input,.ui-select{width:100%;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:.55rem .75rem;outline:none;transition:box-shadow var(--transition),border-color var(--transition);}
+    .ui-input:focus,.ui-select:focus{border-color:var(--c-primary);box-shadow:0 0 0 3px rgba(118,202,227,.25);} .ui-label{font-size:12px;color:#64748b;margin-bottom:.25rem;display:block;}
+    .kpi-title{font-size:13px;color:#64748b;} .kpi-value{font-weight:700;font-size:18px;}
+    .pill{border-radius:999px;padding:.35rem .75rem;font-weight:600;font-size:13px;border:1px solid #e5e7eb;background:#fff;color:#0b2e57;transition:all var(--transition);}
+    .pill:hover{box-shadow:var(--shadow);transform:translateY(-1px);} .pill--active{background:var(--c-primary);border-color:transparent;color:#083344;}
+    .tabs{display:flex;gap:.5rem;flex-wrap:wrap;} .tab-btn{position:relative;padding:.5rem .8rem;border-radius:10px;background:#fff;border:1px solid #e5e7eb;color:#0b2e57;font-weight:600;transition:background var(--transition),transform var(--transition);}
+    .tab-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow);} .tab-btn.active{background:var(--c-navy);color:#fff;}
+    .tab-btn.active::after{content:"";position:absolute;left:12px;right:12px;bottom:-2px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--c-primary),var(--c-lav));transform-origin:left;animation:underline .25s ease-out forwards;}
+    @keyframes underline{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    .badge{display:inline-flex;align-items:center;gap:.4rem;font-size:12px;font-weight:700;letter-spacing:.2px;padding:.2rem .6rem;border-radius:999px;}
+    .badge--success{background:rgba(66,183,126,.12);color:var(--c-mint);} .badge--warn{background:rgba(255,184,77,.15);color:#b06f00;}
+    .badge--error{background:rgba(232,72,85,.12);color:var(--c-coral);} .badge--info{background:rgba(118,202,227,.15);color:#0b2e57;}
+    .chart-h{height:320px;} .wrap{padding:16px;} @media(min-width:768px){.wrap{padding:var(--gutter);}}
+    .grid-cards{display:grid;gap:16px;} @media(min-width:768px){.grid-cards{grid-template-columns:repeat(2,minmax(0,1fr));}} @media(min-width:1024px){.grid-cards{grid-template-columns:repeat(4,minmax(0,1fr));}}
+  </style>
+</head>
+<body>
+  <div id="root" class="wrap max-w-[1200px] mx-auto"></div>
+
+  <!-- Friendly message if a library fails to load -->
+  <div id="lib-error" style="display:none;max-width:800px;margin:24px auto;font-family:Roboto">
+    <div class="ui-card" style="padding:16px;">
+      <div class="ui-title">We couldn’t load a library</div>
+      <p class="ui-body" style="margin-top:8px">Refresh the page. If it persists, send me a Console screenshot.</p>
+    </div>
+  </div>
+
+  <!-- The app (JSX compiled by Babel) -->
+  <script type="text/babel" data-presets="react">
+    if (!window.React || !window.ReactDOM || !window.Recharts || !window.PropTypes) {
+      document.getElementById('lib-error').style.display = 'block';
+      throw new Error('Required libraries not available');
+    }
+
+    const { useMemo, useState, useEffect } = React;
+    const { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, BarChart, Bar } = Recharts;
+
+    const fmtMoney = (n)=> (isFinite(n)? n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}) : '—');
+    const fmtInt   = (n)=> (isFinite(n)? Math.round(n).toLocaleString() : '—');
+    const months   = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    function useRipple(){
+      useEffect(()=>{
+        const onClick = (e)=>{
+          const btn = e.target.closest('.btn'); if(!btn) return;
+          const r = btn.getBoundingClientRect(); const size = Math.max(r.width, r.height);
+          const s = document.createElement('span'); s.className='ripple';
+          s.style.width=s.style.height=size+'px';
+          s.style.left=(e.clientX - r.left - size/2)+'px';
+          s.style.top =(e.clientY - r.top  - size/2)+'px';
+          btn.appendChild(s); setTimeout(()=>s.remove(),500);
+        };
+        document.addEventListener('click', onClick);
+        return ()=> document.removeEventListener('click', onClick);
+      },[]);
+    }
+
+    function NumberInput({label, value, onChange, step=1}) {
+      return (
+        <div>
+          <label className="ui-label">{label}</label>
+          <input className="ui-input" type="number" step={step} value={value} onChange={(e)=> onChange(Number(e.target.value))}/>
+        </div>
+      );
+    }
+    function SelectNum({label, options, value, onChange, format=(v)=>v}){
+      return (
+        <div>
+          <label className="ui-label">{label}</label>
+          <select className="ui-select" value={String(value)} onChange={(e)=> onChange(Number(e.target.value))}>
+            {options.map(v=> <option key={v} value={String(v)}>{format(v)}</option>)}
+          </select>
+        </div>
+      );
+    }
+
+    function WarGamePlanner(){
+      useRipple();
+
+      // Inputs
+      const [npTarget, setNpTarget] = useState(1_000_000);
+      const [revenuePerApprovedJob, setRevPerApprovedJob] = useState(653.6);
+      const [approval, setApproval] = useState(0.55);
+      const [gpPct, setGpPct] = useState(0.275);
+      const [netMargin, setNetMargin] = useState(0.125);
+      const [revenuePerPM, setRevenuePerPM] = useState(40000);
+
+      const [dispatcherCapacityYear, setDispatcherCapacityYear] = useState(1440);
+      const [tlPerDispatchers, setTlPerDispatchers] = useState(4);
+      const [omPerTls, setOmPerTls] = useState(4);
+      const [amPerPM, setAmPerPM] = useState(30);
+
+      const [closeRate, setCloseRate] = useState(0.90);
+      const [pmsPerAgency, setPmsPerAgency] = useState(4);
+      const [meetingsPerMonth, setMeetingsPerMonth] = useState(4);
+
+      const [totalAgencies, setTotalAgencies] = useState(1000);
+      const [totalPMs, setTotalPMs] = useState(5800);
+
+      const [useCustomSchedule, setUseCustomSchedule] = useState(true);
+      const [schedule, setSchedule] = useState(Array(12).fill(4));
+
+      const presets = [
+        { key:'base',  label:"Baseline",     sub:"GP 27.5% → 55% approval", gp:0.275, appr:0.55 },
+        { key:'val+',  label:"Value+",       sub:"GP 24% → 65% approval",   gp:0.24,  appr:0.65 },
+        { key:'agg',   label:"Aggressive",   sub:"GP 22% → 70% approval",   gp:0.22,  appr:0.70 },
+        { key:'ultra', label:"Ultra-Value",  sub:"GP 20% → 75% approval",   gp:0.20,  appr:0.75 },
+      ];
+      const [activePreset, setActivePreset] = useState(null);
+      const onPreset = (p)=>{ setGpPct(p.gp); setApproval(p.appr); setActivePreset(p.key); };
+
+      // Derived KPIs
+      const requiredRevenue = useMemo(()=> npTarget / netMargin, [npTarget, netMargin]);
+      const pmsNeeded = useMemo(()=> requiredRevenue / revenuePerPM, [requiredRevenue, revenuePerPM]);
+      const approvedJobs = useMemo(()=> requiredRevenue / revenuePerApprovedJob, [requiredRevenue, revenuePerApprovedJob]);
+      const jobsSent = useMemo(()=> approvedJobs / approval, [approvedJobs, approval]);
+
+      const dispatchers = useMemo(()=> Math.max(1, Math.ceil(jobsSent / dispatcherCapacityYear)), [jobsSent, dispatcherCapacityYear]);
+      const tls = useMemo(()=> Math.max(1, Math.ceil(dispatchers / tlPerDispatchers)), [dispatchers, tlPerDispatchers]);
+      const oms = useMemo(()=> Math.max(1, Math.ceil(tls / omPerTls)), [tls, omPerTls]);
+      const ams = useMemo(()=> Math.max(1, Math.ceil(pmsNeeded / amPerPM)), [pmsNeeded, amPerPM]);
+
+      // Schedule rows
+      const scheduleMeetings = useMemo(()=> useCustomSchedule ? schedule : Array(12).fill(meetingsPerMonth), [useCustomSchedule, schedule, meetingsPerMonth]);
+
+      const scheduleRows = useMemo(()=>{
+        let cumPMs = 0, cumRevenue = 0;
+        return months.map((m, idx)=>{
+          const mtgs = scheduleMeetings[idx];
+          const agenciesWon = mtgs * closeRate;
+          const pmsWon = agenciesWon * pmsPerAgency;
+          const revenue = pmsWon * revenuePerPM;
+          const np = revenue * netMargin;
+          cumPMs += pmsWon; cumRevenue += revenue;
+          return { month:m, meetings:mtgs, agenciesWon, pmsWon, revenue, np, cumPMs, cumRevenue, cumNP:cumRevenue*netMargin };
+        });
+      }, [scheduleMeetings, closeRate, pmsPerAgency, revenuePerPM, netMargin]);
+
+      // Staffing from schedule
+      const yearPMsFromSchedule = useMemo(()=> scheduleRows.reduce((a,b)=> a + b.pmsWon, 0), [scheduleRows]);
+      const yearRevenueFromSchedule = useMemo(()=> yearPMsFromSchedule * revenuePerPM, [yearPMsFromSchedule, revenuePerPM]);
+      const yearApprovedJobsFromSchedule = useMemo(()=> yearRevenueFromSchedule / revenuePerApprovedJob, [yearRevenueFromSchedule, revenuePerApprovedJob]);
+      const yearJobsSentFromSchedule = useMemo(()=> yearApprovedJobsFromSchedule / approval, [yearApprovedJobsFromSchedule, approval]);
+
+      const schedDispatchers = useMemo(()=> Math.max(1, Math.ceil(yearJobsSentFromSchedule / dispatcherCapacityYear)), [yearJobsSentFromSchedule, dispatcherCapacityYear]);
+      const schedTLs = useMemo(()=> Math.max(1, Math.ceil(schedDispatchers / tlPerDispatchers)), [schedDispatchers, tlPerDispatchers]);
+      const schedOMs = useMemo(()=> Math.max(1, Math.ceil(schedTLs / omPerTls)), [schedTLs, omPerTls]);
+      const schedAMs = useMemo(()=> Math.max(1, Math.ceil(yearPMsFromSchedule / amPerPM)), [yearPMsFromSchedule, amPerPM]);
+
+      // Matrix
+      const matrixData = useMemo(()=>{
+        const rows = [];
+        for(let mt=2; mt<=10; mt++){
+          const row = { mtgs:mt };
+          for(let p=2; p<=6; p++){
+            const agencies = mt * 12 * closeRate;
+            const pms = agencies * p;
+            const rev = pms * revenuePerPM;
+            const np  = rev * netMargin;
+            row[`p${p}`] = { pms, rev, np };
+          }
+          rows.push(row);
+        }
+        return rows;
+      }, [closeRate, revenuePerPM, netMargin]);
+
+      const exportCSV = ()=>{
+        const lines = [];
+        lines.push("Section,Metric,Value");
+        lines.push(`Target,NP Target,${npTarget}`);
+        lines.push(`Target,Net Margin,${netMargin}`);
+        lines.push(`Target,Required Revenue,${requiredRevenue}`);
+        lines.push(`Target,Revenue/PM,${revenuePerPM}`);
+        lines.push(`Target,PMs Needed,${pmsNeeded}`);
+        lines.push(`Ops,Approval %,${approval}`);
+        lines.push(`Ops,GP %,${gpPct}`);
+        lines.push(`Ops,Jobs Approved,${approvedJobs}`);
+        lines.push(`Ops,Jobs Sent,${jobsSent}`);
+        lines.push(`Staff,Dispatchers,${dispatchers}`);
+        lines.push(`Staff,Team Leaders,${tls}`);
+        lines.push(`Staff,Ops Managers,${oms}`);
+        lines.push(`Staff,Account Managers,${ams}`);
+        lines.push("");
+        lines.push("Month,Meetings,Agencies Won,PMs Won,Revenue,Net Profit,Cum PMs,Cum Revenue,Cum NP");
+        scheduleRows.forEach(r=>{
+          lines.push([r.month,r.meetings,r.agenciesWon,r.pmsWon,r.revenue,r.np,r.cumPMs,r.cumRevenue,r.cumNP].join(","));
+        });
+        const blob = new Blob([lines.join("\n")], {type:'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'ClassAFix_WarGame_Snapshot.csv'; a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const [tab,setTab] = useState("dashboard");
+
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="ui-title">Class A Fix — Growth War-Gaming</div>
+              <div className="ui-sub mt-1">Minimal, dispatcher-friendly simulation workspace</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="badge badge--info">Internal</span>
+              <button className="btn btn--primary" onClick={exportCSV}>Export CSV</button>
+              <button className="btn btn--navy" onClick={()=> setTab('dashboard')}>Go to Dashboard</button>
+            </div>
+          </div>
+
+          <div className="ui-card p-4 md:p-5">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <span className="ui-sub mr-2">Strategy Presets:</span>
+              {[
+                {key:'base',label:'Baseline',gp:0.275,appr:0.55,sub:'GP 27.5% → 55% approval'},
+                {key:'val+',label:'Value+',gp:0.24,appr:0.65,sub:'GP 24% → 65% approval'},
+                {key:'agg',label:'Aggressive',gp:0.22,appr:0.70,sub:'GP 22% → 70% approval'},
+                {key:'ultra',label:'Ultra-Value',gp:0.20,appr:0.75,sub:'GP 20% → 75% approval'},
+              ].map(p=>(
+                <button key={p.key}
+                        className={`pill ${activePreset===p.key?'pill--active':''}`}
+                        title={p.sub}
+                        onClick={()=> { setGpPct(p.gp); setApproval(p.appr); setActivePreset(p.key); }}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <NumberInput label="NP Target" value={npTarget} onChange={setNpTarget}/>
+              <SelectNum label="Net Margin %" value={netMargin} onChange={setNetMargin}
+                         options={[0.10,0.125,0.15,0.175]} format={(v)=>(v*100).toFixed(1)+'%'} />
+              <SelectNum label="Revenue per PM" value={revenuePerPM} onChange={setRevenuePerPM}
+                         options={[30000,40000,53000]} format={(v)=> v.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0})} />
+              <NumberInput label="Revenue / Approved Job" value={revenuePerApprovedJob} onChange={setRevPerApprovedJob} step="0.1"/>
+
+              <SelectNum label="Approval %" value={approval} onChange={setApproval}
+                         options={[0.55,0.65,0.70,0.75]} format={(v)=>(v*100).toFixed(0)+'%'} />
+              <SelectNum label="Gross Profit %" value={gpPct} onChange={setGpPct}
+                         options={[0.275,0.24,0.22,0.20]} format={(v)=>(v*100).toFixed(1)+'%'} />
+              <NumberInput label="AM Ratio (PMs per AM)" value={amPerPM} onChange={setAmPerPM} />
+
+              <NumberInput label="Dispatcher Capacity / Year" value={dispatcherCapacityYear} onChange={setDispatcherCapacityYear} />
+              <NumberInput label="TLs per Dispatcher" value={tlPerDispatchers} onChange={setTlPerDispatchers} />
+              <NumberInput label="OMs per TL" value={omPerTls} onChange={setOmPerTls} />
+              <NumberInput label="CRM — Agencies" value={totalAgencies} onChange={setTotalAgencies} />
+              <NumberInput label="CRM — Property Managers" value={totalPMs} onChange={setTotalPMs} />
+              <SelectNum label="Close Rate in Meeting" value={closeRate} onChange={setCloseRate}
+                         options={[0.7,0.8,0.9,0.95]} format={(v)=>(v*100).toFixed(0)+'%'} />
+              <NumberInput label="PMs per Agency (avg)" value={pmsPerAgency} onChange={setPmsPerAgency} />
+              <NumberInput label="Default Meetings / Month" value={meetingsPerMonth} onChange={setMeetingsPerMonth} />
+
+              <div className="flex items-center gap-2 mt-2">
+                <input id="custom" type="checkbox" className="scale-110 accent-[var(--c-primary)]"
+                       checked={useCustomSchedule} onChange={(e)=> setUseCustomSchedule(e.target.checked)}/>
+                <label htmlFor="custom" className="ui-sub">Use Custom Monthly Schedule</label>
+                {useCustomSchedule ? <span className="badge badge--success">Custom</span> : <span className="badge badge--info">Default</span>}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid-cards">
+            {[
+              {t:'Required Revenue', v:fmtMoney(requiredRevenue)},
+              {t:'PMs Needed',       v:fmtInt(pmsNeeded)},
+              {t:'Jobs Sent',        v:fmtInt(jobsSent)},
+              {t:'Jobs Approved',    v:fmtInt(approvedJobs)},
+            ].map(k=>(
+              <div className="ui-card p-4" key={k.t}>
+                <div className="kpi-title">{k.t}</div>
+                <div className="kpi-value mt-1">{k.v}</div>
+              </div>
+            ))}
+          </div>
+          <div className="grid-cards">
+            {[
+              {t:'Dispatchers',      v:fmtInt(dispatchers)},
+              {t:'Team Leaders',     v:fmtInt(tls)},
+              {t:'Ops Managers',     v:fmtInt(oms)},
+              {t:'Account Managers', v:fmtInt(ams)},
+            ].map(k=>(
+              <div className="ui-card p-4" key={k.t}>
+                <div className="kpi-title">{k.t}</div>
+                <div className="kpi-value mt-1">{k.v}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="tabs">
+            {[
+              {id:'dashboard',label:'Dashboard'},
+              {id:'schedule', label:'Meetings Schedule'},
+              {id:'matrix',   label:'Meetings × PMs/Agency Matrix'},
+              {id:'staffing', label:'Staffing from Schedule'},
+            ].map(t=>(
+              <button key={t.id} className={`tab-btn ${tab===t.id?'active':''}`} onClick={()=> setTab(t.id)}>{t.label}</button>
+            ))}
+          </div>
+
+          {tab==='dashboard' && (
+            <div className="ui-card p-4 md:p-5">
+              <div className="ui-sub mb-3">Cumulative NP over the year (based on schedule)</div>
+              <div className="chart-h">
+                <ResponsiveContainer>
+                  <LineChart data={scheduleRows}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(v)=> typeof v==='number' ? fmtMoney(v) : v} />
+                    <Legend />
+                    <Line type="monotone" dataKey="cumNP"      name="Cum Net Profit" stroke="#1E3A8A" strokeWidth={2} dot={false}/>
+                    <Line type="monotone" dataKey="cumRevenue" name="Cum Revenue"    stroke="#76CAE3" strokeWidth={2} dot={false}/>
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {tab==='schedule' && (
+            <div className="ui-card p-4 md:p-5 space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {months.map((m,i)=>(
+                  <div key={m}>
+                    <label className="ui-label">{m} — Meetings</label>
+                    <input className="ui-input" type="number" value={schedule[i]}
+                           onChange={(e)=> setSchedule(prev=> prev.map((x,idx)=> idx===i? Number(e.target.value): x))}/>
+                  </div>
+                ))}
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-slate-500">
+                      <th className="py-2">Month</th><th>Meetings</th><th>Agencies Won</th><th>PMs Won</th>
+                      <th>Revenue</th><th>Net Profit</th><th>Cumulative PMs</th><th>Cumulative Revenue</th><th>Cumulative NP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scheduleRows.map(r=>(
+                      <tr key={r.month} className="border-t">
+                        <td className="py-2">{r.month}</td>
+                        <td>{fmtInt(r.meetings)}</td>
+                        <td><span className="badge badge--info">{fmtInt(r.agenciesWon)}</span></td>
+                        <td>{fmtInt(r.pmsWon)}</td>
+                        <td className="font-semibold text-[var(--c-navy)]">{fmtMoney(r.revenue)}</td>
+                        <td className="text-[var(--c-mint)] font-semibold">{fmtMoney(r.np)}</td>
+                        <td>{fmtInt(r.cumPMs)}</td>
+                        <td>{fmtMoney(r.cumRevenue)}</td>
+                        <td>{fmtMoney(r.cumNP)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {tab==='matrix' && (
+            <div className="ui-card p-4 md:p-5 space-y-4">
+              <div className="ui-sub">NP/year for meetings per month (rows) × PMs per agency (columns)</div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-slate-500">
+                      <th className="py-2">Meetings / mo</th>
+                      {[2,3,4,5,6].map(p=> <th key={p}>{p} PMs/agency</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matrixData.map(row=>(
+                      <tr key={row.mtgs} className="border-t">
+                        <td className="py-2 font-medium">{row.mtgs}</td>
+                        {[2,3,4,5,6].map(p=>{
+                          const cell = row[`p${p}`];
+                          const tone = p>=5? 'badge--success' : (p===4? 'badge--info' : 'badge--warn');
+                          return (
+                            <td key={p}>
+                              <span className={`badge ${tone}`}>{fmtMoney(cell.np)}</span>
+                              <div className="text-xs text-slate-500">{fmtInt(cell.pms)} PMs</div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="chart-h">
+                <ResponsiveContainer>
+                  <BarChart data={matrixData.map(r=>({ mtgs:r.mtgs, npAt4:r.p4.np }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mtgs" />
+                    <YAxis />
+                    <Tooltip formatter={(v)=> typeof v==='number' ? fmtMoney(v) : v} />
+                    <Legend />
+                    <Bar dataKey="npAt4" name="NP @ 4 PMs/agency" fill="#76CAE3" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {tab==='staffing' && (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="ui-card p-4 md:p-5 space-y-2">
+                  <div className="ui-sub">Full-year totals from the schedule</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><div className="text-xs text-slate-500">PMs Won</div><div className="kpi-value">{fmtInt(yearPMsFromSchedule)}</div></div>
+                    <div><div className="text-xs text-slate-500">Revenue</div><div className="kpi-value text-[var(--c-navy)]">{fmtMoney(yearRevenueFromSchedule)}</div></div>
+                    <div><div className="text-xs text-slate-500">Approved Jobs</div><div className="kpi-value">{fmtInt(yearApprovedJobsFromSchedule)}</div></div>
+                    <div><div className="text-xs text-slate-500">Jobs Sent</div><div className="kpi-value">{fmtInt(yearJobsSentFromSchedule)}</div></div>
+                  </div>
+                </div>
+
+                <div className="ui-card p-4 md:p-5 grid grid-cols-2 gap-4">
+                  <div><div className="text-xs text-slate-500">Dispatchers</div><div className="kpi-value">{fmtInt(schedDispatchers)}</div></div>
+                  <div><div className="text-xs text-slate-500">Team Leaders</div><div className="kpi-value">{fmtInt(schedTLs)}</div></div>
+                  <div><div className="text-xs text-slate-500">Ops Managers</div><div className="kpi-value">{fmtInt(schedOMs)}</div></div>
+                  <div><div className="text-xs text-slate-500">Account Managers</div><div className="kpi-value">{fmtInt(schedAMs)}</div></div>
+                </div>
+              </div>
+
+              <div className="ui-card p-4 md:p-5 mt-4">
+                <div className="ui-sub mb-3">Cumulative PMs from schedule</div>
+                <div className="chart-h">
+                  <ResponsiveContainer>
+                    <LineChart data={scheduleRows}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(v)=> typeof v==='number' ? (v>1000? fmtInt(v): v) : v} />
+                      <Legend />
+                      <Line type="monotone" dataKey="cumPMs" name="Cum PMs" stroke="#42B77E" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </>
+          )}
+
+          <div className="ui-body text-slate-500 pt-1">
+            Tips: Use a preset to simulate approval jumps. Adjust monthly meetings to war-game seasonal bursts (e.g., 10 in Q1, 6 in winter).
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<WarGamePlanner />);
+  </script>
+</body>
+</html>
