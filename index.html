@@ -359,10 +359,18 @@
                 options={[0.10,0.125,0.15,0.175]} value={netMargin}
                 onChange={wrap(L.netMargin, setNetMargin, ()=>netMargin)}
                 format={(v)=> (v*100).toFixed(1)+'%'} />
-              <SelectNum label={L.revenuePerPM}
-                options={[30000,40000,53000]} value={revenuePerPM}
-                onChange={wrap(L.revenuePerPM, setRevenuePerPM, ()=>revenuePerPM)}
-                format={(v)=> fmtMoney(v)} />
+             <NumberInput
+  label={L.revenuePerPM}
+  value={revenuePerPM}
+  step={1000}  // arrow keys jump by $1k; you can change to 500 or 100
+  onChange={(v)=>{
+    // sanitize & clamp between $5k and $200k to avoid typos
+    const clean = Number.isFinite(v) ? v : 0;
+    const bounded = Math.min(150000, Math.max(5000, clean));
+    log(L.revenuePerPM, revenuePerPM, bounded);
+    setRevenuePerPM(bounded);
+  }}
+/>
               <NumberInput label={L.revenuePerApprovedJob}
                 value={revenuePerApprovedJob} step={0.1}
                 onChange={wrap(L.revenuePerApprovedJob, setRevPerApprovedJob, ()=>revenuePerApprovedJob)} />
