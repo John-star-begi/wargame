@@ -2,465 +2,591 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Executives War Game — Class A Fix</title>
+  <title>Class A Fix — Executives War Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Fonts -->
+  <!-- Roboto -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
   <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- React 18 UMD -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- React 18 UMD (production) -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 
-  <!-- Babel (JSX in-browser) -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Babel (JSX enable in browser) -->
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
 
-  <!-- Recharts (UMD) -->
-  <script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.min.js"></script>
+  <!-- PropTypes (needed by Recharts UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/prop-types@15.8.1/prop-types.min.js"></script>
+
+  <!-- Recharts UMD -->
+  <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js"></script>
 
   <style>
     :root{
       --c-bg:#F9FBFC;
-      --c-primary:#76CAE3;   /* sky blue */
-      --c-navy:#1E3A8A;      /* navy */
-      --c-lav:#D9E7F1;       /* lavender */
-      --c-mint:#42B77E;      /* success */
-      --c-amber:#FFB84D;     /* warning */
-      --c-coral:#E84855;     /* error */
-      --c-text:#0f172a;      /* slate-900-ish */
+      --c-primary:#76CAE3; /* sky */
+      --c-navy:#1E3A8A;    /* navy */
+      --c-lav:#D9E7F1;     /* lavender */
+      --c-mint:#42B77E;    /* success */
+      --c-amber:#FFB84D;   /* warning */
+      --c-coral:#E84855;   /* error */
+      --c-text:#0f172a;
       --radius:14px;
       --shadow:0 2px 6px rgba(0,0,0,.05);
       --shadow-hover:0 6px 18px rgba(0,0,0,.08);
-      --gutter:24px;
       --transition:150ms cubic-bezier(.2,.7,.2,1);
     }
     html,body{height:100%;}
-    body{
-      background:var(--c-bg);
-      color:var(--c-text);
-      font-family: "Roboto", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
-    }
-    .wrap{ padding:16px; }
-    @media(min-width:768px){ .wrap{ padding:var(--gutter); } }
-    .ui-card{
-      background:#fff;
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      transition:transform var(--transition), box-shadow var(--transition), background var(--transition);
-    }
-    .ui-card:hover{ box-shadow:var(--shadow-hover); }
-    .ui-title{ font-weight:700; font-size:22px; color:var(--c-navy); }
-    .ui-sub{ font-weight:500; font-size:16px; color:#475569; }
-    .ui-body{ font-weight:400; font-size:14px; }
-    .btn{ border:none; border-radius:12px; padding:.6rem 1rem; font-weight:700; transition:transform var(--transition), background var(--transition); }
-    .btn:hover{ transform:scale(1.02); }
-    .btn-primary{ background:var(--c-primary); color:#083344; }
-    .badge{ display:inline-flex; align-items:center; padding:.18rem .55rem; border-radius:999px; font-size:12px; font-weight:700; }
-    .badge-info{ background:rgba(118,202,227,.15); color:#0b2e57; }
-    .badge-success{ background:rgba(66,183,126,.12); color:#1c7a55; }
-    .chart-h { height: 320px; }
-    .tabs{ display:flex; gap:.5rem; flex-wrap:wrap; }
-    .tab-btn{ padding:.5rem .8rem; border-radius:10px; background:#fff; border:1px solid #e5e7eb; color:#0b2e57; font-weight:700; }
-    .tab-btn.active{ background:var(--c-navy); color:#fff; }
-    .ui-label{ font-size:12px; color:#64748b; display:block; margin-bottom:.25rem; }
-    .ui-input{
-      width:100%; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:.55rem .75rem;
-      outline:none; transition: box-shadow var(--transition), border-color var(--transition);
-    }
-    .ui-input:focus{ border-color: var(--c-primary); box-shadow: 0 0 0 3px rgba(118,202,227,.25); }
-    .grid-cards{ display:grid; gap:16px; }
-    @media(min-width:768px){ .grid-cards{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    @media(min-width:1024px){ .grid-cards{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    body{background:var(--c-bg);color:var(--c-text);font-family:"Roboto",system-ui,-apple-system,Segoe UI,Arial,sans-serif;}
+    .wrap{padding:16px;} @media(min-width:768px){ .wrap{padding:24px;} }
+    .ui-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);transition:transform var(--transition),box-shadow var(--transition),background var(--transition);}
+    .ui-card:hover{box-shadow:var(--shadow-hover);}
+    .ui-title{font-weight:700;font-size:22px;color:var(--c-navy);}
+    .ui-sub{font-weight:500;font-size:16px;color:#475569;}
+    .ui-body{font-size:14px;color:#475569;}
+    .btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:.5rem;border:none;border-radius:12px;padding:.625rem 1rem;font-weight:600;transition:transform var(--transition),opacity var(--transition);}
+    .btn:hover{transform:scale(1.02);} .btn:active{transform:scale(0.99);}
+    .btn--primary{background:var(--c-primary);color:#083344;}
+    .btn--navy{background:var(--c-navy);color:#fff;}
+    .btn--ghost{background:#fff;border:1px solid #e5e7eb;color:var(--c-navy);}
+    .ripple{position:absolute;border-radius:50%;transform:scale(0);animation:ripple 500ms ease-out;background:rgba(255,255,255,.35);pointer-events:none;}
+    @keyframes ripple{to{transform:scale(4);opacity:0}}
+    .ui-input,.ui-select{width:100%;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:.55rem .75rem;outline:none;transition:box-shadow var(--transition),border-color var(--transition);}
+    .ui-input:focus,.ui-select:focus{border-color:var(--c-primary);box-shadow:0 0 0 3px rgba(118,202,227,.25);}
+    .ui-label{font-size:12px;color:#64748b;margin-bottom:.25rem;display:block;}
+    .kpi-title{font-size:13px;color:#64748b;} .kpi-value{font-weight:700;font-size:18px;}
+    .grid-cards{display:grid;gap:16px;} @media(min-width:768px){.grid-cards{grid-template-columns:repeat(2,minmax(0,1fr));}} @media(min-width:1024px){.grid-cards{grid-template-columns:repeat(4,minmax(0,1fr));}}
+    .chart-h{height:320px;}
+    .tabs{display:flex;gap:.5rem;flex-wrap:wrap;}
+    .tab-btn{position:relative;padding:.5rem .8rem;border-radius:10px;background:#fff;border:1px solid #e5e7eb;color:#0b2e57;font-weight:600;transition:transform var(--transition),box-shadow var(--transition);}
+    .tab-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow);} .tab-btn.active{background:var(--c-navy);color:#fff;}
+    .tab-btn.active::after{content:"";position:absolute;left:12px;right:12px;bottom:-2px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--c-primary),var(--c-lav));}
+    .badge{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:999px;font-weight:700;font-size:12px;}
+    .badge--info{background:rgba(118,202,227,.15);color:#0b2e57;}
+    .badge--success{background:rgba(66,183,126,.12);color:var(--c-mint);}
+    .pill{border-radius:999px;padding:.35rem .75rem;font-weight:600;font-size:13px;border:1px solid #e5e7eb;background:#fff;color:#0b2e57;transition:all var(--transition);}
+    .pill:hover{box-shadow:var(--shadow);transform:translateY(-1px);} .pill--active{background:var(--c-primary);border-color:transparent;color:#083344;}
   </style>
 </head>
 <body>
   <div id="root" class="wrap max-w-[1200px] mx-auto"></div>
 
-  <!-- APP -->
   <script type="text/babel" data-presets="react">
-    // Pull Recharts safely from the UMD global
-    const RC = window.Recharts;
+    if(!window.React || !window.ReactDOM || !window.Recharts || !window.PropTypes){
+      const e=document.createElement('div'); e.style.cssText='max-width:800px;margin:24px auto;font-family:Roboto';
+      e.innerHTML='<div class="ui-card" style="padding:16px;"><div class="ui-title">We couldn’t load a library.</div><p class="ui-body">Refresh the page. If it persists, open DevTools → Console and send me a screenshot.</p></div>';
+      document.body.prepend(e); throw new Error('Libraries missing');
+    }
+
+    const { useState, useMemo, useEffect } = React;
     const {
       LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
       CartesianGrid, Legend, BarChart, Bar, AreaChart, Area
-    } = RC;
+    } = Recharts;
 
-    const { useMemo, useState, useEffect } = React;
-
-    // ————— Utilities —————
     const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const fmtMoney = (n)=> (isFinite(n)? n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}) : '—');
     const fmtInt   = (n)=> (isFinite(n)? Math.round(n).toLocaleString() : '—');
-    const clamp    = (v,min,max)=> Math.max(min, Math.min(max, v));
 
-    function NumberInput({label, value, onChange, step=1, min=0, max=1e12, hint}) {
-      // fully free numeric entry; arrows optional
-      const handle = (e)=>{
-        const raw = e.target.value.replace(/[^\d.\-]/g,'');
-        if(raw===''){ onChange(0); return; }
-        let n = Number(raw);
-        if(!isFinite(n)) n = 0;
-        onChange(clamp(n, min, max));
-      };
+    function useRipple(){
+      useEffect(()=>{
+        const onClick=(e)=>{
+          const btn=e.target.closest('.btn'); if(!btn) return;
+          const r=btn.getBoundingClientRect(), size=Math.max(r.width,r.height);
+          const s=document.createElement('span'); s.className='ripple';
+          s.style.width=s.style.height=size+'px'; s.style.left=(e.clientX-r.left-size/2)+'px'; s.style.top=(e.clientY-r.top-size/2)+'px';
+          btn.appendChild(s); setTimeout(()=>s.remove(),500);
+        };
+        document.addEventListener('click',onClick);
+        return ()=> document.removeEventListener('click',onClick);
+      },[]);
+    }
+
+    const L = {
+      // Labels for governance
+      npTarget: 'NP Target', netMargin:'Net Margin %', revenuePerPM:'Revenue per PM',
+      revenuePerApprovedJob:'Revenue / Approved Job', approval:'Approval %', gpPct:'Gross Profit %',
+      amPerPM:'PMs per AM', dispatcherCapacityYear:'Dispatcher Capacity / Year',
+      tlPerDispatchers:'TLs per Dispatcher', omPerTls:'OMs per TL', totalAgencies:'CRM — Agencies',
+      totalPMs:'CRM — Property Managers', closeRate:'Close Rate in Meeting', pmsPerAgency:'PMs per Agency',
+      meetingsPerMonth:'Default Meetings / Month', useCustomSchedule:'Use Custom Monthly Schedule'
+    };
+
+    function NumberInput({label, value, onChange, step=1}) {
       return (
         <div>
           <label className="ui-label">{label}</label>
-          <input className="ui-input" type="text" value={String(value)} onChange={handle} placeholder="Enter number..." />
-          {hint && <div className="text-[12px] text-slate-500 mt-1">{hint}</div>}
+          <input className="ui-input" type="number" step={step} value={value}
+                 onChange={(e)=> onChange(Number(e.target.value))}/>
         </div>
       );
     }
-    function PercentInput({label, value, onChange, step=0.01, min=0, max=1}) {
-      const handle = (e)=>{
-        const raw = e.target.value.replace(/[^\d.\-]/g,'');
-        if(raw===''){ onChange(0); return; }
-        let n = Number(raw)/100;
-        if(!isFinite(n)) n = 0;
-        onChange(clamp(n, min, max));
-      };
+    function SelectNum({label, options, value, onChange, format=(v)=>v}){
       return (
         <div>
           <label className="ui-label">{label}</label>
-          <input className="ui-input" type="text" value={(value*100).toFixed(2)} onChange={handle} placeholder="%"/>
+          <select className="ui-select" value={String(value)} onChange={(e)=> onChange(Number(e.target.value))}>
+            {options.map(v=> <option key={v} value={String(v)}>{format(v)}</option>)}
+          </select>
         </div>
       );
     }
-    function Checkbox({label, checked, onChange}) {
-      return (
-        <label className="flex items-center gap-2 select-none">
-          <input type="checkbox" className="scale-110 accent-[var(--c-primary)]" checked={checked} onChange={e=>onChange(e.target.checked)} />
-          <span className="ui-sub">{label}</span>
-        </label>
-      );
-    }
 
-    // ————— Core monthly engine —————
-    /**
-     * Returns 36 months of results with:
-     * - meetings schedule per month (custom or constant)
-     * - wins → PMs added
-     * - churn & expansion applied to active PM base
-     * - revenue, GP, NP, jobs
-     * Also returns Year 1 / Year 2 / Year 3 slices with
-     * yearly-cumulative (reset each Jan) and rolling cumulative.
-     */
-    function useEngine(state){
-      const {
-        // targets & pricing
-        netMargin, gpPct, revenuePerPM,
-        // sales funnel
-        closeRate, pmsPerAgency,
-        // ops
-        revenuePerApprovedJob, approval,
-        // staffing capacity
-        dispatcherCapacityYear, tlPerDispatchers, omPerTls, amPerPM,
-        // schedule
-        useCustomSchedule, schedule, meetingsPerMonth,
-        // churn & expansion
-        monthlyChurn, monthlyExpansion
-      } = state;
-
-      return useMemo(()=>{
-        const months36 = Array.from({length:36}, (_,i)=>i); // 0..35
-        const meetings = months36.map((i)=>{
-          if(!useCustomSchedule) return meetingsPerMonth;
-          // repeat the 12-month plan over 36 months
-          return schedule[i % 12] ?? meetingsPerMonth;
-        });
-
-        // cohort adds (PMs) each month from meetings
-        const addsPM = months36.map(i => meetings[i] * closeRate * pmsPerAgency);
-
-        // rolling active PM base with churn (removal) and adds; expansion affects revenue, not PM count
-        const activePM = [];
-        for(let m=0; m<36; m++){
-          const prev = m===0 ? 0 : activePM[m-1];
-          const churned = prev * monthlyChurn;
-          activePM[m] = Math.max(0, prev - churned + addsPM[m]);
-        }
-
-        // revenue per active PM grows with monthly expansion (compounding)
-        const rpmByMonth = months36.map(m => revenuePerPM * Math.pow(1+monthlyExpansion, m));
-
-        // per-month revenue = active PM * revenue per PM (month-adjusted)
-        const revenue = months36.map(m => activePM[m] * rpmByMonth[m] / 12); // convert annual per-PM to monthly flow
-        const gp      = revenue.map(r => r * gpPct);
-        const np      = gp.map(g => g * (netMargin / gpPct)); // keep Net Margin ratio to Revenue
-
-        // Jobs math (for staffing)
-        const jobsApproved = months36.map((m)=> revenue[m] / revenuePerApprovedJob);
-        const jobsSent     = jobsApproved.map(v => v / approval);
-
-        // rolling cumulative (never resets)
-        const cumRevenue = revenue.map((_,i)=> revenue.slice(0,i+1).reduce((a,b)=>a+b,0));
-        const cumNP      = np.map((_,i)=> np.slice(0,i+1).reduce((a,b)=>a+b,0));
-
-        // yearly slices with reset of *totals* each year, but carrying PM base forward
-        const sliceYear = (y)=>{ // y = 1,2,3
-          const start = (y-1)*12;
-          const end = y*12;
-          const rows = [];
-          let yrRevenue=0, yrNP=0;
-          for(let i=start;i<end;i++){
-            yrRevenue += revenue[i];
-            yrNP += np[i];
-            rows.push({
-              t:`Y${y} M${i-start+1}`,
-              m:i,
-              monthName: months[i%12],
-              addPM: addsPM[i],
-              activePM: activePM[i],
-              rev_month: revenue[i],
-              gp: gp[i],
-              np: np[i],
-              jobsApproved: jobsApproved[i],
-              jobsSent: jobsSent[i],
-              cumRevenue: yrRevenue,
-              cumNP: yrNP
-            });
-          }
-          const yearRevenue = yrRevenue;
-          const yearNP = yrNP;
-          return {rows, yearRevenue, yearNP};
-        };
-
-        const Y1 = sliceYear(1);
-        const Y2 = sliceYear(2);
-        const Y3 = sliceYear(3);
-
-        // staffing from *full-year* totals of Y1/Y2/Y3
-        function staffingFrom(yearRows){
-          const yearRev = yearRows.rows.reduce((a,r)=>a+r.rev_month,0);
-          const yearApproved = yearRev / revenuePerApprovedJob;
-          const yearSent = yearApproved / approval;
-          const dispatchers = Math.max(1, Math.ceil(yearSent / dispatcherCapacityYear));
-          const tls = Math.max(1, Math.ceil(dispatchers / tlPerDispatchers));
-          const oms = Math.max(1, Math.ceil(tls / omPerTls));
-          const ams = Math.max(1, Math.ceil((yearRows.rows.at(-1)?.activePM || 0) / amPerPM));
-          return {dispatchers, tls, oms, ams, yearRev};
-        }
-
-        const staffY1 = staffingFrom(Y1);
-        const staffY2 = staffingFrom(Y2);
-        const staffY3 = staffingFrom(Y3);
-
-        return {
-          months36, meetings, addsPM, activePM, revenue, gp, np, jobsApproved, jobsSent,
-          cumRevenue, cumNP, rpmByMonth,
-          Y1, Y2, Y3,
-          staffY1, staffY2, staffY3
-        };
-      }, [
-        netMargin, gpPct, revenuePerPM, closeRate, pmsPerAgency, revenuePerApprovedJob, approval,
-        dispatcherCapacityYear, tlPerDispatchers, omPerTls, amPerPM,
-        useCustomSchedule, schedule, meetingsPerMonth, monthlyChurn, monthlyExpansion
-      ]);
-    }
-
-    // ————— Main App —————
+    /* ================== APP ================== */
     function ExecutivesWarGame(){
-      // core inputs (sane defaults)
-      const [netMargin, setNetMargin] = useState(0.125);
-      const [gpPct, setGpPct] = useState(0.275);
-      const [revenuePerPM, setRevenuePerPM] = useState(40000); // ANNUAL per active PM
+      useRipple();
 
-      const [closeRate, setCloseRate] = useState(0.90);
-      const [pmsPerAgency, setPmsPerAgency] = useState(4);
-      const [meetingsPerMonth, setMeetingsPerMonth] = useState(4);
+      // ===== Assumptions & change log =====
+      const [changes, setChanges] = useState([]); // {t, name, from, to}
+      const log = (name, from, to)=>{
+        if(from===to) return;
+        setChanges(prev=> [{t:new Date().toLocaleString(), name, from, to}, ...prev].slice(0,150));
+      };
 
-      const [revenuePerApprovedJob, setRevenuePerApprovedJob] = useState(653.6);
+      // ===== Core inputs =====
+      const [npTarget, setNpTarget] = useState(1_000_000);
+      const [revenuePerApprovedJob, setRevPerApprovedJob] = useState(653.6);
       const [approval, setApproval] = useState(0.55);
+      const [gpPct, setGpPct] = useState(0.275);
+      const [netMargin, setNetMargin] = useState(0.125);
+      const [revenuePerPM, setRevenuePerPM] = useState(40000);
 
-      const [dispatcherCapacityYear, setDispatcherCapacityYear] = useState(1440);
+      // Capacity & org ratios
+      const [dispatcherCapacityYear, setDispatcherCapacityYear] = useState(1440); // 120/mo
       const [tlPerDispatchers, setTlPerDispatchers] = useState(4);
       const [omPerTls, setOmPerTls] = useState(4);
       const [amPerPM, setAmPerPM] = useState(30);
 
+      // Sales motion
+      const [closeRate, setCloseRate] = useState(0.90);
+      const [pmsPerAgency, setPmsPerAgency] = useState(4);
+      const [meetingsPerMonth, setMeetingsPerMonth] = useState(4);
+
+      // CRM universe
+      const [totalAgencies, setTotalAgencies] = useState(1000);
+      const [totalPMs, setTotalPMs] = useState(5800);
+
+      // Scheduling
       const [useCustomSchedule, setUseCustomSchedule] = useState(true);
-      const [schedule, setSchedule] = useState(Array(12).fill(4));
+      const [schedule12, setSchedule12] = useState(Array(12).fill(4));
 
-      const [monthlyChurn, setMonthlyChurn] = useState(0.08);     // 8% / mo
-      const [monthlyExpansion, setMonthlyExpansion] = useState(0.01); // 1% / mo
+      // Cohort/Churn (starter knobs)
+      const [monthlyChurn, setMonthlyChurn] = useState(0.03);     // 3% churn of active PMs/month
+      const [monthlyExpansion, setMonthlyExpansion] = useState(0); // % uplift to simulate expansion (kept 0 initially)
 
-      const [tab, setTab] = useState('dashboard');
+      // Scenarios
+      const presets = [
+        { key:'base',  label:"Base",          gp:0.275, appr:0.55 },
+        { key:'cons',  label:"Conservative",  gp:0.29,  appr:0.50 },
+        { key:'agg',   label:"Aggressive",    gp:0.22,  appr:0.70 },
+      ];
+      const [activePreset, setActivePreset] = useState('base');
+      const applyPreset = (p)=>{
+        log(L.gpPct, gpPct, p.gp); setGpPct(p.gp);
+        log(L.approval, approval, p.appr); setApproval(p.appr);
+        setActivePreset(p.key);
+      };
 
-      const engine = useEngine({
-        netMargin, gpPct, revenuePerPM, closeRate, pmsPerAgency,
-        revenuePerApprovedJob, approval,
-        dispatcherCapacityYear, tlPerDispatchers, omPerTls, amPerPM,
-        useCustomSchedule, schedule, meetingsPerMonth,
-        monthlyChurn, monthlyExpansion
-      });
+      // ================== Derived KPI (target-based single-year) ==================
+      const requiredRevenue = useMemo(()=> npTarget / netMargin, [npTarget, netMargin]);
+      const pmsNeeded = useMemo(()=> requiredRevenue / revenuePerPM, [requiredRevenue, revenuePerPM]);
+      const approvedJobs = useMemo(()=> requiredRevenue / revenuePerApprovedJob, [requiredRevenue, revenuePerApprovedJob]);
+      const jobsSent = useMemo(()=> approvedJobs / approval, [approvedJobs, approval]);
 
-      // quick calc tiles (Year 1)
-      const y1Revenue = engine.Y1.yearRevenue;
-      const y1NP = engine.Y1.yearNP;
-      const y1GP = engine.Y1.rows.reduce((a,r)=>a+(r.rev_month*gpPct),0);
+      const dispatchers = useMemo(()=> Math.max(1, Math.ceil(jobsSent / dispatcherCapacityYear)), [jobsSent, dispatcherCapacityYear]);
+      const tls = useMemo(()=> Math.max(1, Math.ceil(dispatchers / tlPerDispatchers)), [dispatchers, tlPerDispatchers]);
+      const oms = useMemo(()=> Math.max(1, Math.ceil(tls / omPerTls)), [tls, omPerTls]);
+      const ams = useMemo(()=> Math.max(1, Math.ceil(pmsNeeded / amPerPM)), [pmsNeeded, amPerPM]);
 
+      // ================== 36-month engine (drives executive views) ==================
+      const meetings12 = useMemo(()=> useCustomSchedule ? schedule12 : Array(12).fill(meetingsPerMonth), [useCustomSchedule, schedule12, meetingsPerMonth]);
+      const meetings36 = useMemo(()=> [...meetings12, ...meetings12, ...meetings12], [meetings12]);
+
+      const byMonth = useMemo(()=>{
+        let cumRevenue=0, cumNP=0, cumPMs=0;
+        const rows=[];
+        for(let i=0;i<36;i++){
+          const mtgs = meetings36[i];
+          const agenciesWon = mtgs * closeRate;               // close in meeting
+          const pmsWon = agenciesWon * pmsPerAgency;          // PMs per agency
+          const revenue = pmsWon * revenuePerPM;
+          const gp = revenue * gpPct;
+          const np = revenue * netMargin;
+
+          cumPMs += pmsWon; cumRevenue += revenue; cumNP += np;
+          rows.push({
+            idx:i, label:`Y${Math.floor(i/12)+1}-${months[i%12]}`,
+            monthName: months[i%12],
+            mtgs, agenciesWon, pmsWon, revenue, gp, np,
+            cumPMs, cumRevenue, cumNP
+          });
+        }
+        return rows;
+      }, [meetings36, closeRate, pmsPerAgency, revenuePerPM, gpPct, netMargin]);
+
+      const yearSlice = (y)=> byMonth.slice((y-1)*12, y*12);
+      const totalsYear = (y)=> {
+        const r = yearSlice(y);
+        return r.reduce((a,b)=>({ revenue:a.revenue+b.revenue, gp:a.gp+b.gp, np:a.np+b.np, pms:a.pms+(b.pmsWon||0)}), {revenue:0,gp:0,np:0,pms:0});
+      };
+      const totalsAll = useMemo(()=> byMonth.reduce((a,b)=>({revenue:a.revenue+b.revenue,gp:a.gp+b.gp,np:a.np+b.np,pms:a.pms+(b.pmsWon||0)}), {revenue:0,gp:0,np:0,pms:0}), [byMonth]);
+
+      // Staffing from schedule totals (Year 1)
+      const year1RevenueFromSchedule = useMemo(()=> totalsYear(1).revenue, [byMonth]);
+      const year1ApprovedJobsFromSchedule = useMemo(()=> year1RevenueFromSchedule / revenuePerApprovedJob, [year1RevenueFromSchedule, revenuePerApprovedJob]);
+      const year1JobsSentFromSchedule = useMemo(()=> year1ApprovedJobsFromSchedule / approval, [year1ApprovedJobsFromSchedule, approval]);
+      const schedDispatchers = useMemo(()=> Math.max(1, Math.ceil(year1JobsSentFromSchedule / dispatcherCapacityYear)), [year1JobsSentFromSchedule, dispatcherCapacityYear]);
+      const schedTLs = useMemo(()=> Math.max(1, Math.ceil(schedDispatchers / tlPerDispatchers)), [schedDispatchers, tlPerDispatchers]);
+      const schedOMs = useMemo(()=> Math.max(1, Math.ceil(schedTLs / omPerTls)), [schedTLs, omPerTls]);
+      const schedAMs = useMemo(()=> Math.max(1, Math.ceil(totalsYear(1).pms / amPerPM)), [byMonth, amPerPM]);
+
+      // Meetings × PMs/agency matrix (Year 1 sensitivity)
+      const matrixData = useMemo(()=>{
+        const rows=[];
+        for(let mt=2; mt<=10; mt++){
+          const row={ mtgs: mt };
+          for(let p=2; p<=6; p++){
+            const agencies = mt * 12 * closeRate;
+            const pms = agencies * p;
+            const rev = pms * revenuePerPM;
+            const np = rev * netMargin;
+            row[`p${p}`]={ pms, rev, np };
+          }
+          rows.push(row);
+        }
+        return rows;
+      }, [closeRate, revenuePerPM, netMargin]);
+
+      // Cohorts: simple retention model (3 visible cohorts: start at m0, m12, m24)
+      const cohorts = useMemo(()=>{
+        // Build array of new PMs per month from engine:
+        const newPMs = byMonth.map(m=> m.pmsWon);
+        function buildCohort(startMonth){
+          const arr=[];
+          let active=0;
+          for(let m=0;m<36;m++){
+            if(m===startMonth) active += newPMs[m]; // cohort starts here
+            // churn + optional expansion
+            active = active * (1 - monthlyChurn) * (1 + monthlyExpansion);
+            arr.push(active<0?0:active);
+          }
+          return arr;
+        }
+        const c1 = buildCohort(0);   // months 1-12
+        const c2 = buildCohort(12);  // months 13-24
+        const c3 = buildCohort(24);  // months 25-36
+        const out=[];
+        for(let m=0;m<36;m++){
+          out.push({ month:`M${m+1}`, cohort1:c1[m], cohort2:c2[m], cohort3:c3[m] });
+        }
+        return out;
+      }, [byMonth, monthlyChurn, monthlyExpansion]);
+
+      // ================== UI state ==================
+      const [tab, setTab] = useState("executive");
+      const [timeframe, setTimeframe] = useState("yearly"); // 'yearly' | 'rolling'
+      const [year, setYear] = useState(1);
+
+      const tfData = timeframe==='yearly' ? yearSlice(year).map((r,i)=>({...r, x: months[i]})) : byMonth.map(r=> ({...r, x: r.label}));
+
+      // ================== CSV Export ==================
       const exportCSV = ()=>{
-        const lines = [];
-        lines.push("Month,Adds PM,Active PM,Revenue,GP,NP,Jobs Approved,Jobs Sent,Ytd Revenue,Ytd NP");
-        engine.Y1.rows.forEach(r=>{
-          lines.push([r.monthName, r.addPM, r.activePM, r.rev_month, r.rev_month*gpPct, r.np, r.jobsApproved, r.jobsSent, r.cumRevenue, r.cumNP].join(","));
+        const LINES=[];
+        LINES.push("Section,Metric,Value");
+        LINES.push(`Target,NP Target,${npTarget}`);
+        LINES.push(`Target,Net Margin,${netMargin}`);
+        LINES.push(`Target,Required Revenue,${requiredRevenue}`);
+        LINES.push(`Target,Revenue/PM,${revenuePerPM}`);
+        LINES.push(`Target,PMs Needed,${pmsNeeded}`);
+        LINES.push(`Ops,Approval %,${approval}`);
+        LINES.push(`Ops,GP %,${gpPct}`);
+        LINES.push(`Ops,Jobs Approved,${approvedJobs}`);
+        LINES.push(`Ops,Jobs Sent,${jobsSent}`);
+        LINES.push(`Staff,Dispatchers (target),${dispatchers}`);
+        LINES.push(`Staff,Team Leaders (target),${tls}`);
+        LINES.push(`Staff,Ops Managers (target),${oms}`);
+        LINES.push(`Staff,Account Managers (target),${ams}`);
+        LINES.push("");
+        LINES.push("Month,Label,Meetings,Agencies Won,PMs Won,Revenue,GP,NP,Cum Revenue,Cum NP");
+        byMonth.forEach(r=>{
+          LINES.push([r.idx+1,r.label,r.mtgs,r.agenciesWon,r.pmsWon,r.revenue,r.gp,r.np,r.cumRevenue,r.cumNP].join(","));
         });
-        const blob = new Blob([lines.join("\n")], {type:'text/csv;charset=utf-8;'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href=url; a.download='ClassAFix_ExecutivesWarGame_Y1.csv'; a.click();
+        const blob=new Blob([LINES.join("\n")],{type:'text/csv;charset=utf-8;'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a'); a.href=url; a.download='ClassAFix_ExecutivesWarGame.csv'; a.click();
         URL.revokeObjectURL(url);
       };
 
-      const setScheduleMonth = (i, val)=>{
-        setSchedule(prev => prev.map((v,idx)=> idx===i ? val : v));
-      };
+      // ======= Inputs with logging wrappers =======
+      const wrap = (label, setter, getter)=> (v)=>{ const from=getter(); setter(v); log(label, from, v); };
 
-      // UI
       return (
         <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-3">
+          {/* ===== Header ===== */}
+          <div className="flex items-center justify-between">
             <div>
-              <div className="ui-title">Executives War Game — Class A Fix</div>
-              <div className="ui-sub mt-1">Banker-grade, cohortized, rolling + yearly views</div>
+              <div className="ui-title">Class A Fix — Executives War Game</div>
+              <div className="ui-sub mt-1">Banker-grade planning: dual timeframes, cohorts, and auditable assumptions</div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="badge badge-info">Internal</span>
-              <button className="btn btn-primary" onClick={exportCSV}>Export Y1 CSV</button>
+              <span className="badge badge--info">Internal</span>
+              <button className="btn btn--primary" onClick={exportCSV}>Export CSV</button>
             </div>
           </div>
 
-          {/* Controls */}
+          {/* ===== Controls & Assumptions ===== */}
           <div className="ui-card p-4 md:p-5">
+            {/* Scenarios */}
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <span className="ui-sub mr-2">Scenario:</span>
+              {presets.map(p=>(
+                <button key={p.key}
+                        className={`pill ${activePreset===p.key?'pill--active':''}`}
+                        onClick={()=> applyPreset(p)}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <PercentInput label="Net Margin %" value={netMargin} onChange={setNetMargin} />
-              <PercentInput label="GP %" value={gpPct} onChange={setGpPct} />
-              <NumberInput label="Revenue per PM (annual)" value={revenuePerPM} onChange={setRevenuePerPM} hint="Type any number (e.g., 23,750)" />
-              <NumberInput label="Revenue / Approved Job" value={revenuePerApprovedJob} onChange={setRevenuePerApprovedJob} step={0.1} />
+              <NumberInput label={L.npTarget}
+                value={npTarget} onChange={wrap(L.npTarget, setNpTarget, ()=>npTarget)} />
+              <SelectNum label={L.netMargin}
+                options={[0.10,0.125,0.15,0.175]} value={netMargin}
+                onChange={wrap(L.netMargin, setNetMargin, ()=>netMargin)}
+                format={(v)=> (v*100).toFixed(1)+'%'} />
+              <SelectNum label={L.revenuePerPM}
+                options={[30000,40000,53000]} value={revenuePerPM}
+                onChange={wrap(L.revenuePerPM, setRevenuePerPM, ()=>revenuePerPM)}
+                format={(v)=> fmtMoney(v)} />
+             <NumberInput
+  label={L.revenuePerPM}
+  value={revenuePerPM}
+  step={1000}  // arrow keys jump by $1k; you can change to 500 or 100
+  onChange={(v)=>{
+    // sanitize & clamp between $5k and $200k to avoid typos
+    const clean = Number.isFinite(v) ? v : 0;
+    const bounded = Math.min(150000, Math.max(5000, clean));
+    log(L.revenuePerPM, revenuePerPM, bounded);
+    setRevenuePerPM(bounded);
+  }}
+/>
+              <NumberInput label={L.revenuePerApprovedJob}
+                value={revenuePerApprovedJob} step={0.1}
+                onChange={wrap(L.revenuePerApprovedJob, setRevPerApprovedJob, ()=>revenuePerApprovedJob)} />
 
-              <PercentInput label="Approval %" value={approval} onChange={setApproval} />
-              <PercentInput label="Close Rate in Meeting" value={closeRate} onChange={setCloseRate} />
-              <NumberInput label="PMs per Agency (avg)" value={pmsPerAgency} onChange={setPmsPerAgency} />
-              <NumberInput label="Default Meetings / Month" value={meetingsPerMonth} onChange={setMeetingsPerMonth} />
+              <SelectNum label={L.approval}
+                options={[0.55,0.65,0.70,0.75]} value={approval}
+                onChange={wrap(L.approval, setApproval, ()=>approval)}
+                format={(v)=> (v*100).toFixed(0)+'%'} />
+              <SelectNum label={L.gpPct}
+                options={[0.275,0.24,0.22,0.20]} value={gpPct}
+                onChange={wrap(L.gpPct, setGpPct, ()=>gpPct)}
+                format={(v)=> (v*100).toFixed(1)+'%'} />
+              <NumberInput label={L.amPerPM}
+                value={amPerPM} onChange={wrap(L.amPerPM, setAmPerPM, ()=>amPerPM)} />
 
-              <NumberInput label="Dispatcher Capacity / Year" value={dispatcherCapacityYear} onChange={setDispatcherCapacityYear} />
-              <NumberInput label="TLs per Dispatcher" value={tlPerDispatchers} onChange={setTlPerDispatchers} />
-              <NumberInput label="OMs per TL" value={omPerTls} onChange={setOmPerTls} />
-              <NumberInput label="AM Ratio (PMs per AM)" value={amPerPM} onChange={setAmPerPM} />
+              <NumberInput label={L.dispatcherCapacityYear}
+                value={dispatcherCapacityYear} onChange={wrap(L.dispatcherCapacityYear, setDispatcherCapacityYear, ()=>dispatcherCapacityYear)} />
+              <NumberInput label={L.tlPerDispatchers}
+                value={tlPerDispatchers} onChange={wrap(L.tlPerDispatchers, setTlPerDispatchers, ()=>tlPerDispatchers)} />
+              <NumberInput label={L.omPerTls}
+                value={omPerTls} onChange={wrap(L.omPerTls, setOmPerTls, ()=>omPerTls)} />
+              <NumberInput label={L.totalAgencies}
+                value={totalAgencies} onChange={wrap(L.totalAgencies, setTotalAgencies, ()=>totalAgencies)} />
+              <NumberInput label={L.totalPMs}
+                value={totalPMs} onChange={wrap(L.totalPMs, setTotalPMs, ()=>totalPMs)} />
+              <SelectNum label={L.closeRate}
+                options={[0.7,0.8,0.9,0.95]} value={closeRate}
+                onChange={wrap(L.closeRate, setCloseRate, ()=>closeRate)}
+                format={(v)=> (v*100).toFixed(0)+'%'} />
+              <NumberInput label={L.pmsPerAgency}
+                value={pmsPerAgency} onChange={wrap(L.pmsPerAgency, setPmsPerAgency, ()=>pmsPerAgency)} />
+              <NumberInput label={L.meetingsPerMonth}
+                value={meetingsPerMonth} onChange={wrap(L.meetingsPerMonth, setMeetingsPerMonth, ()=>meetingsPerMonth)} />
 
-              <PercentInput label="Monthly Churn" value={monthlyChurn} onChange={setMonthlyChurn} />
-              <PercentInput label="Monthly Expansion" value={monthlyExpansion} onChange={setMonthlyExpansion} />
-
-              <div className="col-span-1 flex items-center gap-3">
-                <Checkbox label="Use Custom Monthly Schedule" checked={useCustomSchedule} onChange={setUseCustomSchedule} />
-                <span className={`badge ${useCustomSchedule?'badge-success':'badge-info'}`}>{useCustomSchedule?'Custom':'Default'}</span>
+              <div className="flex items-center gap-2 mt-2">
+                <input id="custom" type="checkbox" className="scale-110 accent-[var(--c-primary)]"
+                       checked={useCustomSchedule}
+                       onChange={(e)=>{ log(L.useCustomSchedule, useCustomSchedule, e.target.checked); setUseCustomSchedule(e.target.checked); }}/>
+                <label htmlFor="custom" className="ui-sub">{L.useCustomSchedule}</label>
+                {useCustomSchedule ? <span className="badge badge--success">Custom</span> : <span className="badge badge--info">Default</span>}
               </div>
+
+              <SelectNum label="Monthly Churn (cohorts)"
+                options={[0.0,0.02,0.03,0.05,0.08]} value={monthlyChurn}
+                onChange={wrap('Monthly Churn', setMonthlyChurn, ()=>monthlyChurn)}
+                format={(v)=> (v*100).toFixed(0)+'%'} />
+              <SelectNum label="Monthly Expansion (cohorts)"
+                options={[0.0,0.01,0.02]} value={monthlyExpansion}
+                onChange={wrap('Monthly Expansion', setMonthlyExpansion, ()=>monthlyExpansion)}
+                format={(v)=> (v*100).toFixed(0)+'%'} />
             </div>
           </div>
 
-          {/* KPI cards (Year 1) */}
-          <div className="grid-cards">
-            <div className="ui-card p-4">
-              <div className="text-sm text-slate-500">Y1 Revenue</div>
-              <div className="text-xl font-bold text-[var(--c-navy)]">{fmtMoney(y1Revenue)}</div>
-            </div>
-            <div className="ui-card p-4">
-              <div className="text-sm text-slate-500">Y1 GP</div>
-              <div className="text-xl font-bold">{fmtMoney(y1GP)}</div>
-            </div>
-            <div className="ui-card p-4">
-              <div className="text-sm text-slate-500">Y1 NP</div>
-              <div className="text-xl font-bold text-[var(--c-mint)]">{fmtMoney(y1NP)}</div>
-            </div>
-            <div className="ui-card p-4">
-              <div className="text-sm text-slate-500">Active PM at Y1 end</div>
-              <div className="text-xl font-bold">{fmtInt(engine.Y1.rows.at(-1)?.activePM || 0)}</div>
-            </div>
-          </div>
-
-          {/* Tabs */}
+          {/* ===== Tabs ===== */}
           <div className="tabs">
-            {['dashboard','schedule','cohorts','staffing'].map(id=>(
-              <button key={id} className={`tab-btn ${tab===id?'active':''}`} onClick={()=>setTab(id)}>
-                {id[0].toUpperCase()+id.slice(1)}
-              </button>
+            {[
+              {id:'executive',label:'Executive'},
+              {id:'dashboard',label:'Dashboard'},
+              {id:'schedule',label:'Meetings Schedule'},
+              {id:'matrix',label:'Sensitivity Matrix'},
+              {id:'staffing',label:'Staffing'},
+              {id:'cohorts',label:'Cohorts'},
+              {id:'governance',label:'Governance'},
+            ].map(t=>(
+              <button key={t.id} className={`tab-btn ${tab===t.id?'active':''}`} onClick={()=> setTab(t.id)}>{t.label}</button>
             ))}
           </div>
 
-          {/* Dashboard */}
+          {/* ===== EXECUTIVE ===== */}
+          {tab==='executive' && (
+            <div className="space-y-4">
+              {/* Timeframe controls */}
+              <div className="ui-card p-4 md:p-5">
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="ui-sub">Timeframe:</div>
+                  <button className={`btn ${timeframe==='yearly'?'btn--navy':'btn--ghost'}`} onClick={()=> setTimeframe('yearly')}>Yearly reset</button>
+                  <button className={`btn ${timeframe==='rolling'?'btn--navy':'btn--ghost'}`} onClick={()=> setTimeframe('rolling')}>Rolling 36 months</button>
+                  {timeframe==='yearly' && (
+                    <div className="flex items-center gap-2">
+                      <span className="ui-sub">Year:</span>
+                      <select className="ui-select" style={{width:'120px'}} value={year} onChange={(e)=> setYear(Number(e.target.value))}>
+                        {[1,2,3].map(y=> <option key={y} value={y}>Year {y}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* KPI Tiles */}
+              <div className="grid-cards">
+                <div className="ui-card p-4">
+                  <div className="kpi-title">Revenue — {timeframe==='yearly'?`Year ${year}`:'Rolling 36mo'}</div>
+                  <div className="kpi-value text-[var(--c-navy)]">
+                    {fmtMoney(timeframe==='yearly'? totalsYear(year).revenue : totalsAll.revenue)}
+                  </div>
+                </div>
+                <div className="ui-card p-4">
+                  <div className="kpi-title">Gross Profit — {timeframe==='yearly'?`Year ${year}`:'Rolling 36mo'}</div>
+                  <div className="kpi-value">{fmtMoney(timeframe==='yearly'? totalsYear(year).gp : totalsAll.gp)}</div>
+                </div>
+                <div className="ui-card p-4">
+                  <div className="kpi-title">Net Profit — {timeframe==='yearly'?`Year ${year}`:'Rolling 36mo'}</div>
+                  <div className="kpi-value text-[var(--c-mint)]">{fmtMoney(timeframe==='yearly'? totalsYear(year).np : totalsAll.np)}</div>
+                </div>
+                <div className="ui-card p-4">
+                  <div className="kpi-title">PMs Acquired — {timeframe==='yearly'?`Year ${year}`:'Rolling 36mo'}</div>
+                  <div className="kpi-value">{fmtInt(timeframe==='yearly'? totalsYear(year).pms : totalsAll.pms)}</div>
+                </div>
+              </div>
+
+              {/* Trend line */}
+              <div className="ui-card p-4 md:p-5">
+                <div className="ui-sub mb-3">{timeframe==='yearly' ? `Cumulative NP — Year ${year}` : 'Cumulative NP — Rolling 36 months'}</div>
+                <div className="chart-h">
+                  <ResponsiveContainer>
+                    <LineChart data={tfData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="x" />
+                      <YAxis />
+                      <Tooltip formatter={(v)=> typeof v==='number' ? fmtMoney(v) : v} />
+                      <Legend />
+                      <Line type="monotone" dataKey="cumNP" name="Cum Net Profit" stroke="#1E3A8A" strokeWidth={2} dot={false}/>
+                      <Line type="monotone" dataKey="cumRevenue" name="Cum Revenue" stroke="#76CAE3" strokeWidth={2} dot={false}/>
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Waterfall */}
+              <div className="ui-card p-4 md:p-5">
+                <div className="ui-sub mb-3">Revenue → GP → NP Waterfall ({timeframe==='yearly'?`Year ${year}`:'36mo'})</div>
+                <div className="chart-h">
+                  <ResponsiveContainer>
+                    <BarChart data={[
+                      { step:'Revenue',      value: timeframe==='yearly'? totalsYear(year).revenue : totalsAll.revenue },
+                      { step:'Gross Profit', value: timeframe==='yearly'? totalsYear(year).revenue*gpPct : totalsAll.revenue*gpPct },
+                      { step:'Net Profit',   value: timeframe==='yearly'? totalsYear(year).np : totalsAll.np },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3"/>
+                      <XAxis dataKey="step"/>
+                      <YAxis/>
+                      <Tooltip formatter={(v)=> typeof v==='number'? fmtMoney(v): v}/>
+                      <Bar dataKey="value" name="Value" fill="#76CAE3" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ===== DASHBOARD (Year 1 legacy view) ===== */}
           {tab==='dashboard' && (
-            <div className="ui-card p-4 md:p-5 space-y-4">
-              <div className="ui-sub">Cumulative NP (rolling, 36 months)</div>
+            <div className="ui-card p-4 md:p-5">
+              <div className="ui-sub mb-3">Cumulative NP over the first 12 months (Year 1)</div>
               <div className="chart-h">
                 <ResponsiveContainer>
-                  <LineChart data={engine.months36.map((m)=>({ m, month:`M${m+1}`, cumNP: engine.cumNP[m], cumRevenue: engine.cumRevenue[m] }))}>
+                  <LineChart data={yearSlice(1).map((r,i)=>({...r, month:months[i]}))}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip formatter={(v)=> typeof v === 'number' ? fmtMoney(v) : v} />
                     <Legend />
-                    <Line type="monotone" dataKey="cumNP" name="Cum NP" stroke="#42B77E" strokeWidth={2} dot={false}/>
-                    <Line type="monotone" dataKey="cumRevenue" name="Cum Revenue" stroke="#1E3A8A" strokeWidth={2} dot={false}/>
+                    <Line type="monotone" dataKey="cumNP" name="Cum Net Profit" stroke="#1E3A8A" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="cumRevenue" name="Cum Revenue" stroke="#76CAE3" strokeWidth={2} dot={false} />
                   </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="ui-sub">Year 1 — Monthly Revenue</div>
-              <div className="chart-h">
-                <ResponsiveContainer>
-                  <BarChart data={engine.Y1.rows.map((r,i)=>({ name:r.monthName, rev:r.rev_month }))}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="rev" name="Revenue" fill="#76CAE3" />
-                  </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
           )}
 
-          {/* Meetings schedule */}
+          {/* ===== SCHEDULE EDITOR ===== */}
           {tab==='schedule' && (
             <div className="ui-card p-4 md:p-5 space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {months.map((m, i)=> (
                   <div key={m}>
                     <label className="ui-label">{m} — Meetings</label>
-                    <input className="ui-input" type="number" value={schedule[i]}
-                      onChange={(e)=> setScheduleMonth(i, Number(e.target.value)||0)} />
+                    <input className="ui-input" type="number" value={schedule12[i]}
+                      onChange={(e)=>{
+                        const v=Number(e.target.value);
+                        setSchedule12(prev=> prev.map((x,idx)=> idx===i? v: x));
+                        log(`Schedule: ${m}`, schedule12[i], v);
+                      }}/>
                   </div>
                 ))}
               </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-slate-500">
                       <th className="py-2">Month</th>
-                      <th>Adds PM</th>
-                      <th>Active PM</th>
+                      <th>Meetings</th>
+                      <th>Agencies Won</th>
+                      <th>PMs Won</th>
                       <th>Revenue</th>
-                      <th>NP</th>
-                      <th>Jobs Approved</th>
-                      <th>Jobs Sent</th>
-                      <th>YTD Revenue</th>
-                      <th>YTD NP</th>
+                      <th>Net Profit</th>
+                      <th>Cumulative PMs</th>
+                      <th>Cumulative Revenue</th>
+                      <th>Cumulative NP</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {engine.Y1.rows.map((r)=>(
-                      <tr key={r.t} className="border-t">
+                    {yearSlice(1).map((r)=> (
+                      <tr key={r.monthName} className="border-t">
                         <td className="py-2">{r.monthName}</td>
-                        <td>{fmtInt(r.addPM)}</td>
-                        <td>{fmtInt(r.activePM)}</td>
-                        <td className="font-semibold">{fmtMoney(r.rev_month)}</td>
+                        <td>{fmtInt(r.mtgs)}</td>
+                        <td>{fmtInt(r.agenciesWon)}</td>
+                        <td>{fmtInt(r.pmsWon)}</td>
+                        <td className="font-semibold text-[var(--c-navy)]">{fmtMoney(r.revenue)}</td>
                         <td className="text-[var(--c-mint)] font-semibold">{fmtMoney(r.np)}</td>
-                        <td>{fmtInt(r.jobsApproved)}</td>
-                        <td>{fmtInt(r.jobsSent)}</td>
+                        <td>{fmtInt(r.cumPMs)}</td>
                         <td>{fmtMoney(r.cumRevenue)}</td>
                         <td>{fmtMoney(r.cumNP)}</td>
                       </tr>
@@ -471,63 +597,142 @@
             </div>
           )}
 
-          {/* Cohorts (visualize churn + expansion) */}
-          {tab==='cohorts' && (
+          {/* ===== MATRIX ===== */}
+          {tab==='matrix' && (
             <div className="ui-card p-4 md:p-5 space-y-4">
-              <div className="ui-sub">PM Retention by Cohort (adds in M1, M13, M25)</div>
-              <div className="chart-h">
-                <ResponsiveContainer>
-                  <AreaChart data={Array.from({length:36},(_,i)=>({
-                    m:i+1,
-                    c1: i<12 ? engine.addsPM[0]*Math.pow(1-monthlyChurn, i) : 0,
-                    c2: (i>=12 && i<24) ? engine.addsPM[12]*Math.pow(1-monthlyChurn, i-12) : 0,
-                    c3: i>=24 ? engine.addsPM[24]*Math.pow(1-monthlyChurn, i-24) : 0
-                  }))}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="m" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Area dataKey="c1" name="Cohort Y1" type="monotone" stroke="#76CAE3" fill="#D9E7F1" />
-                    <Area dataKey="c2" name="Cohort Y2" type="monotone" stroke="#1E3A8A" fill="#cfe0ff" />
-                    <Area dataKey="c3" name="Cohort Y3" type="monotone" stroke="#FFB84D" fill="#ffe2b8" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="ui-body text-slate-600">
-                Cohorts show **additions** vs **leakage** (churn). Expansion increases revenue per PM, not PM count.
+              <div className="ui-sub">NP/year for meetings per month (rows) × PMs per agency (columns)</div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-slate-500">
+                      <th className="py-2">Meetings / mo</th>
+                      {[2,3,4,5,6].map(p=> <th key={p}>{p} PMs/agency</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matrixData.map(row=> (
+                      <tr key={row.mtgs} className="border-t">
+                        <td className="py-2 font-medium">{row.mtgs}</td>
+                        {[2,3,4,5,6].map(p=>{
+                          const cell=row[`p${p}`];
+                          const tone = p>=5? 'text-[var(--c-mint)]' : (p===4? 'text-[var(--c-navy)]' : 'text-[var(--c-amber)]');
+                          return (
+                            <td key={p}>
+                              <div className={`font-semibold ${tone}`}>{fmtMoney(cell.np)}</div>
+                              <div className="text-xs text-slate-500">{fmtInt(cell.pms)} PMs</div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
 
-          {/* Staffing */}
+          {/* ===== STAFFING ===== */}
           {tab==='staffing' && (
-            <div className="ui-card p-4 md:p-5 space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {[{y:'Year 1',s:engine.staffY1},{y:'Year 2',s:engine.staffY2},{y:'Year 3',s:engine.staffY3}].map(({y,s})=>(
-                  <div key={y} className="p-4 border rounded-xl">
-                    <div className="font-bold mb-2">{y}</div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>Dispatchers</div><div className="font-bold">{fmtInt(s.dispatchers)}</div>
-                      <div>Team Leaders</div><div className="font-bold">{fmtInt(s.tls)}</div>
-                      <div>Ops Managers</div><div className="font-bold">{fmtInt(s.oms)}</div>
-                      <div>Account Managers</div><div className="font-bold">{fmtInt(s.ams)}</div>
-                      <div>Revenue</div><div className="font-bold text-[var(--c-navy)]">{fmtMoney(s.yearRev)}</div>
-                    </div>
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="ui-card p-4 md:p-5 space-y-2">
+                  <div className="ui-sub">Target-based staffing (from NP target)</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><div className="kpi-title">Dispatchers</div><div className="kpi-value">{fmtInt(dispatchers)}</div></div>
+                    <div><div className="kpi-title">Team Leaders</div><div className="kpi-value">{fmtInt(tls)}</div></div>
+                    <div><div className="kpi-title">Ops Managers</div><div className="kpi-value">{fmtInt(oms)}</div></div>
+                    <div><div className="kpi-title">Account Managers</div><div className="kpi-value">{fmtInt(ams)}</div></div>
                   </div>
-                ))}
+                </div>
+
+                <div className="ui-card p-4 md:p-5 space-y-2">
+                  <div className="ui-sub">Schedule-driven staffing (Year 1)</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><div className="kpi-title">Dispatchers</div><div className="kpi-value">{fmtInt(schedDispatchers)}</div></div>
+                    <div><div className="kpi-title">Team Leaders</div><div className="kpi-value">{fmtInt(schedTLs)}</div></div>
+                    <div><div className="kpi-title">Ops Managers</div><div className="kpi-value">{fmtInt(schedOMs)}</div></div>
+                    <div><div className="kpi-title">Account Managers</div><div className="kpi-value">{fmtInt(schedAMs)}</div></div>
+                  </div>
+                </div>
               </div>
-              <div className="ui-body text-slate-500 pt-1">
-                Yearly view **resets totals** each Jan, but **carries forward** the active PM base (rolling).
+
+              <div className="ui-card p-4 md:p-5 mt-4">
+                <div className="ui-sub mb-3">Cumulative PMs (36 months)</div>
+                <div className="chart-h">
+                  <ResponsiveContainer>
+                    <LineChart data={byMonth}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="label" />
+                      <YAxis />
+                      <Tooltip formatter={(v)=> typeof v==='number' ? (v>1000? fmtInt(v): v) : v} />
+                      <Legend />
+                      <Line type="monotone" dataKey="cumPMs" name="Cum PMs" stroke="#42B77E" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ===== COHORTS ===== */}
+          {tab==='cohorts' && (
+            <div className="ui-card p-4 md:p-5">
+              <div className="ui-sub mb-3">PM Retention by Cohort (36 months)</div>
+              <div className="chart-h">
+                <ResponsiveContainer>
+                  <AreaChart data={cohorts}>
+                    <CartesianGrid strokeDasharray="3 3"/>
+                    <XAxis dataKey="month"/>
+                    <YAxis/>
+                    <Tooltip formatter={(v)=> typeof v==='number' ? fmtInt(v) : v}/>
+                    <Legend/>
+                    <Area type="monotone" dataKey="cohort1" stackId="1" stroke="#1E3A8A" fill="#76CAE3" name="Cohort Y1"/>
+                    <Area type="monotone" dataKey="cohort2" stackId="1" stroke="#42B77E" fill="#A7F3D0" name="Cohort Y2"/>
+                    <Area type="monotone" dataKey="cohort3" stackId="1" stroke="#FFB84D" fill="#FDE68A" name="Cohort Y3"/>
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
           )}
+
+          {/* ===== GOVERNANCE ===== */}
+          {tab==='governance' && (
+            <div className="ui-card p-4 md:p-5 space-y-4">
+              <div className="ui-sub">Assumption Registry & Change Log</div>
+              <div className="ui-body">Every time you change an assumption above, it’s recorded here.</div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-slate-500">
+                      <th className="py-2">Time</th><th>Assumption</th><th>From</th><th>To</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {changes.length===0 && (
+                      <tr className="border-t"><td className="py-2" colSpan="4">No changes yet.</td></tr>
+                    )}
+                    {changes.map((c,idx)=>(
+                      <tr key={idx} className="border-t">
+                        <td className="py-2">{c.t}</td>
+                        <td>{c.name}</td>
+                        <td>{String(c.from)}</td>
+                        <td>{String(c.to)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <div className="ui-body text-slate-500 pt-1">
+            Tips: Use Scenario pills to test GP/approval elasticity. Edit the monthly schedule to simulate bursts. Toggle the Executive timeframe to see Year vs Rolling performance.
+          </div>
         </div>
       );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<ExecutivesWarGame />);
+    ReactDOM.createRoot(document.getElementById('root')).render(<ExecutivesWarGame />);
   </script>
 </body>
 </html>
